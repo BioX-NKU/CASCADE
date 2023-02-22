@@ -13,15 +13,16 @@ torch.set_default_tensor_type(torch.DoubleTensor)
 class Classifier(nn.Module):
     
     def __init__(self, output_dim=None, input_size=None):
-       """
-       A MLP module to predict cell type 
-       consisting of an input layer,two hidden layers,an output layer.
-       
-       Parameters
-       -------------
-       input_size: the features in the training set
-       output_dim: the number of cell types in the training set
-       """
+        """
+        A MLP module to predict cell type 
+        consisting of an input layer,two hidden layers,an output layer.
+
+        Parameters
+        -------------
+        input_size: the features in the training set
+        output_dim: the number of cell types in the training set
+        """
+        
         super(Classifier, self).__init__();
         self.inp_dim = input_size;
         self.out_dim = output_dim;
@@ -46,7 +47,7 @@ class Classifier(nn.Module):
 
         return out
     
-    def train(train_data_loader,device='cpu',epochs=40):
+    def train(self,train_data_loader,device='cpu',epochs=40):
         
         self.to(device)
         # define loss_function,optimizer,lr_scheduler
@@ -78,14 +79,14 @@ class Classifier(nn.Module):
             cf_lr_scheduler.step()
 
 
-    def predict(test_data_loader,le,device='cpu'):
+    def predict(self,test_data_loader,le,device='cpu'):
         
         pred_labels = []
 
         #predict
         with torch.no_grad():
             for data in test_data_loader:
-                data = data.to(device)
+                data = data[0].to(device)
                 output = self(data.double())
                 preds = torch.argmax(output, 1)
                 pred_labels.append(preds.data.cpu().numpy())
@@ -93,17 +94,7 @@ class Classifier(nn.Module):
         
         return pred_labels
 
-    def evaluate_metrics(gt_labels,pred_labels):
-        '''
-        input the ground truth labels and the predicted labels,
-        and it will return the evaluate metrics
-        '''
-        acc = np.sum(gt_labels==pred_labels)/len(pred_labels)
-        kappa = cohen_kappa_score(gt_labels, pred_labels)
-        f1_macro = f1_score(gt_labels, pred_labels, average='macro')
-        f1_weighted = f1_score(gt_labels, pred_labels, average='weighted')
-        
-        return acc,kappa,f1_macro,f1_weighted
+
                 
                 
                 

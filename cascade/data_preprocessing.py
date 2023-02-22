@@ -12,31 +12,7 @@ import episcanpy as epi
 import anndata as ad
 import scipy
 import pandas as pd
-
-
-def tfidf3(count_mat): 
-    model = TfidfTransformer(smooth_idf=False, norm="l2")
-    model = model.fit(np.transpose(count_mat))
-    model.idf_ -= 1
-    tf_idf = np.transpose(model.transform(np.transpose(count_mat)))
-    return scipy.sparse.csr_matrix(tf_idf)
-
-def mask(traindata,rate):
-    traindata_copy = traindata.copy()
-    if isspmatrix(traindata.X):
-        non_zero = np.array(traindata_copy.X.nonzero())
-        index_list = random.sample(list(range(non_zero.shape[1])), int(len(list(range(non_zero.shape[1])))*rate))
-        mask_index_0 = non_zero[:,index_list]
-        mask_index = tuple(mask_index_0.tolist())
-        traindata_copy.X[mask_index] =0
-    else:
-        non_zero = np.array(np.where(traindata_copy.X != 0))
-        index_list = random.sample(list(range(non_zero.shape[1])), int(len(list(range(non_zero.shape[1])))*rate))
-        mask_index_0 = non_zero[:,index_list]
-        mask_index = tuple(mask_index_0.tolist())
-        traindata_copy.X[mask_index] =0
-    return traindata_copy
-
+from .utils import *
 
 def data_preprocessing(train_data,test_data):
     '''
@@ -49,12 +25,12 @@ def data_preprocessing(train_data,test_data):
     testdata_copy = test_data.copy()
     adatas_all = [traindata_copy,testdata_copy]
     adata_all = ad.concat(adatas_all,label='dataset')
-    #特征选择降维
+    #filter_features
     fpeak = 0.01
     epi.pp.binarize(adata_all)
     epi.pp.filter_features(adata_all, min_cells=np.ceil(fpeak*adata_all.shape[0]))
     
-    #归一化
+    #TF-IDF transformation
     tfidf_res = tfidf3(adata_all.X.T).T
     adata_all.X = tfidf_res.copy()
     
@@ -66,7 +42,7 @@ def data_preprocessing(train_data,test_data):
     train_target = le.fit_transform(train_set.obs['cell_type'])
     train_set.obs['cluster'] = train_target
     
-    #对训练集添加mask
+    #mask the training set
     train_set1 = mask(train_set,maskrate)
     train_set2 = mask(train_set,maskrate)
     train_set3 = mask(train_set,maskrate)
@@ -91,13 +67,13 @@ def data_preprocessing(train_data,test_data):
     data_and_labels = []
     test_data = []
     for k in range(len(y_train)):
-        data_and_labels.append([train_dense[i], y_train[i]])
+        data_and_labels.append([train_dense[k], y_train[k]])
         try:
-            test_data.append([test_dense[i]])
+            test_data.append([test_dense[k]])
         except:
             pass;
 
-    test_data_loader = DataLoader(test_data, shuffle=None, sampler=None,batch_sampler=None, num_workers=4, collate_fn=None, pin_memory=True)
+    test_data_loader = DataLoader(test_data, batch_size=32,shuffle=None, sampler=None,batch_sampler=None, num_workers=4, collate_fn=None, pin_memory=True)
         
     train_data_loader = DataLoader(data_and_labels, batch_size=32, shuffle=True, sampler=None,batch_sampler=None, num_workers=4, collate_fn=None, pin_memory=True)
     

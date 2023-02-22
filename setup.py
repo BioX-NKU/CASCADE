@@ -4,9 +4,9 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='CASCADE',
-    version='0.0.1',
-    keywords=('pip','CASCADE')
+    name='epicascade',
+    version='0.0.2',
+    keywords=('pip','CASCADE','single-sell'),
     description='CASCADE: a scCAS cell type annotation method dedicated to differentiating and imbalanced types',
     long_description="CASCADE provides an effective and efficient way to automatically annotate celltypes in scCAS datasets. All CASCADE wheels distributed on PyPI are MIT licensed.",
     license='MIT License',
@@ -29,7 +29,7 @@ setup(
         'scikit-learn>=1.1.1',
         'numba>=0.55.1',
         'scanpy>=1.9.1',
-        'matplotlib==3.5.2'
+        'matplotlib==3.5.2',
         'anndata>=0.8.0',
         'episcanpy>=0.3.2',
         'torch>=1.11.0',

@@ -1,14 +1,18 @@
+[![PyPI](https://img.shields.io/pypi/v/epicascade.svg)](https://pypi.org/project/epicascade)
+[![Downloads](https://pepy.tech/badge/epicascade)](https://pepy.tech/project/epicascade)
+
+
 # Accurate Annotation for Differentiating and Imbalanced Cell Types in Single-cell Chromatin Accessibility Data
 
 ## Installation
 
-install CASCADE from PYPI
+Install CASCADE from PYPI
 
 ```
-pip install CASCADE
+pip install epicascade
 ```
 
-Install CASCADE from GitHub
+You can also install CASCADE from GitHub via
 
 ```
 git clone git://github.com/BioX-NKU/CASCADE.git
@@ -26,15 +30,16 @@ The dependencies will be automatically installed along with CASCADE.
 
 ### Output:
 
-**array** Array object with containing cell type annotation results
+**pred_labels**: Array object which contains cell type annotation results.
 
-### Use processes:
+### Using tutorial:
 
 First, in order to simulate the dataset, we need to split the training set into different cell types and generate the corresponding snap files.
+Note that in this step, we need a snap file as the underlying file to generate snap files, but the content of the file will not affect the content of the final generated snap file. This underlying file is available at [here](https://www.dropbox.com/s/muypr5w5ab7580p/GSE99172.snap?dl=0). Users can download it and provide the file path in ``cascade.makesnap``.
 
 ```python
-import CASCADE
-CASCADE.split.makesnap(train_path,work_path)
+import epicascade as cascade
+cascade.makesnap(train_path,work_path,underlying_file_path)
 ```
 
 Then, we use the simATAC package in R to simulate the data and obtain h5ad file of the simulated data.
@@ -59,19 +64,24 @@ simulation<-function(work_path){
         celltype <- typelist[i,1]
         print(celltype)
         print(n_cell)
-        count <- getCountFromh5(paste(work_path,sprintf('%s.snap',order,celltype),sep = ""))
+        count <- getCountFromh5(paste(work_path,sprintf('%s.snap',celltype),sep = ""))
         object <- simATACEstimate(t(count))
         sim <- simATACSimulate(object, nCells=n_cell)
         print(sim)
-        writeH5AD(sim, file=paste(work_path,sprintf('%s.h5ad',order,celltype),sep = ""))
+        writeH5AD(sim, file=paste(work_path,sprintf('%s.h5ad',celltype),sep = ""))
     	}
     }
+ simulation(work_path)
 ```
 
-Finally, we combine the training set with the simulation set, via the run function in CASCADE after data preprocessing together with the test set, and feed training set into model to train, and obtain the annotation results of the given test set.
+Finally, we can obtain the predicted labels of the test set via ``cascade.run``.
 
 ```python
-annotation = runmodel(train_path,test_path,work_path)
+pred_labels = cascade.run(train_path,test_path,work_path,device)
+```
+What's more, we can get the scores of prediction if we have the ground truth labels using ``cascade.evaluate_metrics``.
+```python
+acc,kappa,f1_macro,f1_weighted = cascade.evaluate_metrics(ground_truth_labels,pred_labels)
 ```
 
 The source datasets are available at [here](https://www.dropbox.com/sh/hu1h340i70ktfc4/AACoq5-PlCTSJY5UvI-i4mAYa?dl=0). 

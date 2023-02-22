@@ -13,32 +13,13 @@ import torch
 
 import torch.nn.functional as F
 from sklearn import preprocessing
-from sklearn.feature_extraction.text import TfidfTransformer
 
 
-from model import *
-from data_preprocessing import *
+from .model import *
+from .data_preprocessing import *
+from .utils import *
 
-
-
-def setup_seed(seed):
-    """
-    Set random seed.
-
-    Parameters
-    ----------
-    seed
-        Number to be set as random seed for reproducibility.
-
-    """
-    np.random.seed(seed)
-    random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.cuda.manual_seed(seed)
-
-
-def run(train_path,test_path,work_path):
+def run(train_path,test_path,work_path,device):
 
     setup_seed(2022)
     test_data = sc.read(test_path)
@@ -68,10 +49,9 @@ def run(train_path,test_path,work_path):
     train_data_loader, test_data_loader,inp_size,number_of_classes,le = data_preprocessing(train_data, test_data_copy)
 
     # Make annotation
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
     cf_model = Classifier(output_dim=number_of_classes, input_size=inp_size)
     
     cf_model.train(train_data_loader,device)  
     pred_labels = cf_model.predict(test_data_loader,le,device)
-    acc,kappa,f1_macro,f1_weighted = cf_model.evaluate_metrics(gt_labels,pred_labels)
-    return pred_lables
+    return pred_labels

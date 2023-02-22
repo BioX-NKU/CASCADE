@@ -5,22 +5,7 @@ import pandas as pd
 import scanpy as sc
 from scipy import sparse
 
-def setup_seed(seed):
-    """
-    Set random seed.
-
-    Parameters
-    ----------
-    seed:
-        Number to be set as random seed for reproducibility.
-
-    """
-    np.random.seed(seed)
-    random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.cuda.manual_seed(seed)
-    #cudnn.deterministic = True
+from .utils import *
     
 def makesnap(train_path,w_path,f_path):
     """
